@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Jost:ital,wght@0,200;0,300;0,400;0,500;0,600;1,200;1,300&family=Pinyon+Script&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=menu-close">
+  <link rel="stylesheet" href="styles.css?v=menu-no-jump">
 </head>
 <body>
   <nav class="nav" id="nav" aria-label="Primary">
@@ -915,10 +915,24 @@
     let menuCloseTimer = 0;
     const MENU_CLOSE_MS = 340;
 
+    const onMenuTouchMove = (e) => {
+      e.preventDefault();
+    };
+
+    const freezeBackgroundScroll = (freeze) => {
+      if (freeze) {
+        document.addEventListener('touchmove', onMenuTouchMove, { passive: false });
+      } else {
+        document.removeEventListener('touchmove', onMenuTouchMove);
+      }
+    };
+
     const finishMenuClose = () => {
       window.clearTimeout(menuCloseTimer);
       nav.classList.remove('is-closing');
+      document.documentElement.classList.remove('nav-menu-closing');
       document.body.classList.remove('nav-menu-closing');
+      freezeBackgroundScroll(false);
       if (nav.classList.contains('is-open')) return;
       if (linkList && mobileNavMq.matches) linkList.setAttribute('inert', '');
       syncNav();
@@ -932,16 +946,22 @@
       if (open) {
         nav.classList.remove('is-closing');
         nav.classList.add('is-open');
+        document.documentElement.classList.add('nav-menu-open');
+        document.documentElement.classList.remove('nav-menu-closing');
         document.body.classList.add('nav-menu-open');
         document.body.classList.remove('nav-menu-closing');
+        freezeBackgroundScroll(true);
         linkList?.removeAttribute('inert');
         return;
       }
 
       nav.classList.remove('is-open');
       nav.classList.add('is-closing');
+      document.documentElement.classList.remove('nav-menu-open');
+      document.documentElement.classList.add('nav-menu-closing');
       document.body.classList.remove('nav-menu-open');
       document.body.classList.add('nav-menu-closing');
+      freezeBackgroundScroll(false);
       menuCloseTimer = window.setTimeout(finishMenuClose, MENU_CLOSE_MS);
     };
 
